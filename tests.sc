@@ -20,8 +20,6 @@ test
         f"there is nothing to interpolate here, so the string should remain unchanged."
         "there is nothing to interpolate here, so the string should remain unchanged."
 
-f"a${}${}"
-
 test
     ==
         f"${ an expression start token without a corresponding end is ignored"
