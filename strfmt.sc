@@ -20,7 +20,10 @@ fn format (fmt ...)
                 case string
                     val as rawstring
                 default
-                    val
+                    static-if ((typeof val) < zarray)
+                        val as rawstring
+                    else
+                        val
             ...
 
     let expected-size = (stbsp.snprintf null 0 fmt ...)
@@ -85,9 +88,65 @@ fn parse-template (input)
 
     result
 
-inline prefix:f (str)
-    print (parse-template str)
-    String str
+fn value->format-specifier (val)
+    returning string Value
+
+    let T = ('typeof val)
+    if (T < integer)
+        if ('signed? T)
+            _ str"%d" val
+        else
+            _ str"%u" val
+    elseif (T < real)
+        _ str"%f" val
+    elseif (T < pointer)
+        _ str"%p" val
+    elseif (or (T < zarray) (T == string) (T == String))
+        _ str"%s" val
+    elseif (T < Arguments)
+        vvv bind specifiers args
+        fold (specifiers = str"") for arg in ('args val)
+            let specifier ?? =
+                (this-function arg)
+            .. specifiers specifier " "
+
+        # remove extra space
+        specifiers := (lslice specifiers ((countof specifiers) - 1))
+        _ str"%s" `(format [specifiers] val)
+    else
+        _ str"%s" `(tostring val)
+
+sugar prefix:f (str)
+    let chunked = (parse-template (str as string))
+
+    vvv bind fmt args
+    fold (fmt args = S"" (list)) for chunk in chunked
+        dispatch chunk
+        case Text (txt)
+            _ (fmt .. txt) args
+        case Code (code)
+            let parsed = (cons 'embed ((sc_parse_from_string (string (code as rawstring))) as list))
+            let expanded = (sc_expand parsed '() sugar-scope)
+            let proved = (sc_prove expanded)
+
+            let specifier arg = (value->format-specifier proved)
+            _
+                fmt .. specifier
+                cons
+                    arg
+                    args
+
+        default
+            unreachable;
+
+    if ((countof args) == 0)
+        qq [embed] [str]
+    else
+        let args = ('reverse args)
+        let result =
+            qq [format] [(fmt as string)] (unquote-splice args)
+        print result
+        result
 
 do
     let format prefix:f

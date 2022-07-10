@@ -7,13 +7,14 @@ let ABC = 123
 let CDE = 345
 let str = "banana"
 
+print
+    repr f"ABC is ${ABC}, CDE is ${CDE}, and the sum is ${(+ ABC CDE)}. This other string is ${str}"
+    repr S"ABC is 123, CDE is 345, and the sum is 468. This other string is banana"
+
 test
     ==
         format "hello %d %s %d world!" 1 "banana" 3
         "hello 1 banana 3 world!"
-
-let test = do
-let test-compiler-error = do
 
 test
     ==
@@ -37,7 +38,7 @@ let varargs... = 1 2 3 4
 test
     ==
         f"some ... ${varargs...} for you!"
-        "some ... 1 2 3 4 for you!"
+        S"some ... 1 2 3 4 for you!"
 
 # let prefix:fAlt = (gen-interpolation-macro "abra" "cadabra")
 # run-stage;
