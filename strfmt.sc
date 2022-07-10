@@ -28,13 +28,9 @@ fn parse-template (input)
         if (start != null)
             let end = (C.strstr start end-token)
             if (end != null)
-                # add anything between current and previous
+                # add anything between current and previous (even empty string)
                 let result =
-                    if (next != start)
-                        let prefix = (string next (ptr-offset next start))
-                        cons prefix result
-                    else
-                        result
+                    cons (string next (ptr-offset next start)) result
 
                 let inner len = (get-inner start end)
                 repeat
