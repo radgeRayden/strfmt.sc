@@ -123,6 +123,7 @@ sugar prefix:f (str)
     fold (fmt args = S"" (list)) for chunk in chunked
         dispatch chunk
         case Text (txt)
+            # FIXME: escape % character
             _ (fmt .. txt) args
         case Code (code)
             let parsed = (cons 'embed ((sc_parse_from_string (string (code as rawstring))) as list))
@@ -143,10 +144,7 @@ sugar prefix:f (str)
         qq [embed] [str]
     else
         let args = ('reverse args)
-        let result =
-            qq [format] [(fmt as string)] (unquote-splice args)
-        print result
-        result
+        qq [format] [(fmt as string)] (unquote-splice args)
 
 do
     let format prefix:f
