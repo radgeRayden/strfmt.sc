@@ -7,6 +7,11 @@ let ABC = 123
 let CDE = 345
 let str = "banana"
 
+test
+    ==
+        format "hello %d %s %d world!" 1 "banana" 3
+        "hello 1 banana 3 world!"
+
 let test = do
 let test-compiler-error = do
 

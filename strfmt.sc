@@ -10,6 +10,31 @@ enum TemplateChunk
 let C = (import C.string)
 let stbsp = (import stb.sprintf)
 
+fn format (fmt ...)
+    let ... =
+        va-map
+            inline (val)
+                static-match (typeof val)
+                case String
+                    val as rawstring
+                case string
+                    val as rawstring
+                default
+                    val
+            ...
+
+    let expected-size = (stbsp.snprintf null 0 fmt ...)
+    assert (expected-size != -1)
+
+    local result = (String (expected-size as usize))
+    'resize result expected-size
+    stbsp.snprintf
+        (imply result pointer) as (mutable rawstring)
+        (expected-size + 1)
+        fmt
+        ...
+    result
+
 let start-token end-token = "${" "}"
 
 """"Get the inner code inside a template.
@@ -65,5 +90,5 @@ inline prefix:f (str)
     String str
 
 do
-    let prefix:f
+    let format prefix:f
     locals;
