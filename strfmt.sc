@@ -1,4 +1,11 @@
+using import enum
 using import String
+using import Array
+using import struct
+
+enum TemplateChunk
+    Text : String
+    Code : String
 
 let C = (import C.string)
 let stbsp = (import stb.sprintf)
@@ -20,36 +27,38 @@ inline ptr-offset (start end)
 
 """"Parse a templated string into a list of interleaved code strings.
     @param input (array i8) @constant string literal containing the templated string
-    @return List
+    @return (Array TemplateChunk)
 fn parse-template (input)
+    local result : (Array TemplateChunk)
+
     # (prefix .. code .. suffix)+ | input
-    loop (next result = (input as rawstring) (list))
+    loop (next = (input as rawstring))
         let start = (C.strstr next start-token)
         if (start != null)
             let end = (C.strstr start end-token)
             if (end != null)
                 # add anything between current and previous
-                let result =
-                    if (next != start)
-                        let prefix = (string next (ptr-offset next start))
-                        cons prefix result
-                    else
-                        result
+                if (next != start)
+                    let prefix = (String next (ptr-offset next start))
+                    'append result (TemplateChunk.Text prefix)
 
                 let inner len = (get-inner start end)
+                'append result (TemplateChunk.Code (String inner len))
                 repeat
                     as
                         & (end @ (countof end-token))
                         rawstring
-                    cons (string inner len) result
 
         # no more templates
         let next-idx = (ptr-offset (input as rawstring) next)
         if (next-idx == (countof input))
-            break ('reverse result)
+            break;
         else
-            let remainder = (string next ((countof input) - next-idx))
-            break ('reverse (cons remainder result))
+            let remainder = (String next ((countof input) - next-idx))
+            'append result (TemplateChunk.Text remainder)
+            break;
+
+    result
 
 inline prefix:f (str)
     print (parse-template str)
