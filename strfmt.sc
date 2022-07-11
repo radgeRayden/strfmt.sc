@@ -91,7 +91,17 @@ fn parse-template (input)
 fn value->format-specifier (val)
     returning string Value
 
-    let T = ('typeof val)
+    let wrapperT val = ('typeof val) `(call val)
+    let T =
+        if ('function-pointer? wrapperT)
+            'strip-qualifiers
+                _
+                    'return-type
+                        'element@ wrapperT 0
+                    () # we don't care about raising type
+        else
+            wrapperT
+
     if (T < integer)
         if ('signed? T)
             _ str"%d" val
@@ -127,10 +137,13 @@ sugar prefix:f (str)
             _ (fmt .. txt) args
         case Code (code)
             let parsed = (cons 'embed ((sc_parse_from_string (string (code as rawstring))) as list))
-            let expanded = (sc_expand parsed '() sugar-scope)
-            let proved = (sc_prove expanded)
+            let evalued =
+                sc_eval
+                    'anchor str
+                    parsed as list
+                    sugar-scope
 
-            let specifier arg = (value->format-specifier proved)
+            let specifier arg = (value->format-specifier evalued)
             _
                 fmt .. specifier
                 cons

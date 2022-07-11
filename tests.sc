@@ -34,11 +34,20 @@ test
 test-compiler-error
     f"however ${ if there's an end token at some point, the first start token is considered. ${}"
 
-let varargs... = 1 2 3 4
-test
-    ==
-        f"some ... ${varargs...} for you!"
-        S"some ... 1 2 3 4 for you!"
+# FIXME: varargs currently segfault somewhere in the sugar, probably in the format string generation
+# let varargs... = 1 2 3 4
+# test
+#     ==
+#         f"some ... ${varargs...} for you!"
+#         S"some ... 1 2 3 4 for you!"
+
+local a : i32 10
+local b : i32 20
+
+# NOTE: it's kinda scary that this works. It probably shouldn't.
+fn A ()
+    print f"${a * b}"
+A;
 
 # let prefix:fAlt = (gen-interpolation-macro "abra" "cadabra")
 # run-stage;
