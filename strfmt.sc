@@ -91,16 +91,19 @@ fn parse-template (input)
 fn value->format-specifier (val)
     returning string Value
 
-    let wrapperT val = ('typeof val) `(call val)
-    let T =
+    # we'll clean this mess shortly after
+    let wrapperT = ('typeof val)
+    let T val =
         if ('function-pointer? wrapperT)
-            'strip-qualifiers
-                _
-                    'return-type
-                        'element@ wrapperT 0
-                    () # we don't care about raising type
+            _
+                'strip-qualifiers
+                    _
+                        'return-type
+                            'element@ wrapperT 0
+                        () # we don't care about raising type
+                `(call val)
         else
-            wrapperT
+            _ wrapperT val
 
     if (T < integer)
         if ('signed? T)
@@ -125,6 +128,35 @@ fn value->format-specifier (val)
         _ str"%s" `(format [specifiers] val)
     else
         _ str"%s" `(tostring val)
+
+spice interpolate (fmt args...)
+    # int atoi (const char * str);
+    # FIXME: atoi is dangerous, and we can't catch invalid arguments. Will need to implement
+    # parsing function.
+    let atoi = (extern 'atoi (function i32 rawstring))
+    let chunked = (parse-template (fmt as string))
+
+    local fmt : String
+    local args : (Array Value)
+
+    for chunk in chunked
+        dispatch chunk
+        case Text (txt)
+            fmt ..= txt
+        case Code (idx)
+            let arg = ('getarg args... (atoi idx))
+            let specifier val = (value->format-specifier arg)
+            fmt ..= specifier
+            'append args val
+        default
+            unreachable;
+
+    let arglist =
+        sc_argument_list_map_new ((countof args) as i32)
+            inline (n)
+                args @ n
+    spice-quote
+        format fmt arglist
 
 sugar prefix:f (str)
     let chunked = (parse-template (str as string))
@@ -160,5 +192,5 @@ sugar prefix:f (str)
         qq [format] [(fmt as string)] (unquote-splice args)
 
 do
-    let format prefix:f
+    let format prefix:f interpolate
     locals;

@@ -7,9 +7,9 @@ let ABC = 123
 let CDE = 345
 let str = "banana"
 
-print
-    repr f"ABC is ${ABC}, CDE is ${CDE}, and the sum is ${(+ ABC CDE)}. This other string is ${str}"
-    repr S"ABC is 123, CDE is 345, and the sum is 468. This other string is banana"
+# print
+#     repr f"ABC is ${ABC}, CDE is ${CDE}, and the sum is ${(+ ABC CDE)}. This other string is ${str}"
+#     repr S"ABC is 123, CDE is 345, and the sum is 468. This other string is banana"
 
 test
     ==
@@ -41,17 +41,23 @@ test-compiler-error
 #         f"some ... ${varargs...} for you!"
 #         S"some ... 1 2 3 4 for you!"
 
-local a : i32 10
-local b : i32 20
-
-# NOTE: it's kinda scary that this works. It probably shouldn't.
-fn A ()
-    print f"${a * b}"
-A;
-
 # let prefix:fAlt = (gen-interpolation-macro "abra" "cadabra")
 # run-stage;
 # test
 #     ==
 #         fAlt"this is not a very smart interpolation marker abravarargs...cadabra"
 #         "this is not a very smart interpolation marker 1 2 3 4"
+#
+
+local a : i32 10
+local b : i32 20
+test
+    ==
+        interpolate
+            "${1} is the ${2} of ${0}, and also ${2}"
+            "this"
+            10
+            do
+                print "this side effect should occur only once"
+                a * b
+        "10 is the 200 of this, and also 200"
