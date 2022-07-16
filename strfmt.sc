@@ -91,19 +91,7 @@ fn parse-template (input)
 fn value->format-specifier (val)
     returning string Value
 
-    # we'll clean this mess shortly after
-    let wrapperT = ('typeof val)
-    let T val =
-        if ('function-pointer? wrapperT)
-            _
-                'strip-qualifiers
-                    _
-                        'return-type
-                            'element@ wrapperT 0
-                        () # we don't care about raising type
-                `(call val)
-        else
-            _ wrapperT val
+    let T = ('typeof val)
 
     if (T < integer)
         if ('signed? T)
@@ -190,17 +178,11 @@ sugar prefix:f (str)
             _ (fmt .. txt) args
         case Code (code)
             let parsed = (cons 'embed ((sc_parse_from_string (string (code as rawstring))) as list))
-            let evalued =
-                sc_eval
-                    'anchor str
-                    parsed as list
-                    sugar-scope
 
-            let specifier arg = (value->format-specifier evalued)
             _
-                fmt .. specifier
+                .. fmt start-token (tostring (countof args)) end-token
                 cons
-                    arg
+                    parsed
                     args
 
         default
@@ -210,7 +192,7 @@ sugar prefix:f (str)
         qq [embed] [str]
     else
         let args = ('reverse args)
-        qq [format] [(fmt as string)] (unquote-splice args)
+        qq [interpolate] [(fmt as string)] (unquote-splice args)
 
 do
     let format prefix:f interpolate va-format

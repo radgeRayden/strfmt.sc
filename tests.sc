@@ -18,7 +18,8 @@ test
 
 test
     ==
-        f"ABC is ${ABC}, CDE is ${CDE}, and the sum is ${(+ ABC CDE)}. This other string is ${str}"
+        report
+            f"ABC is ${ABC}, CDE is ${CDE}, and the sum is ${(+ ABC CDE)}. This other string is ${str}"
         S"ABC is 123, CDE is 345, and the sum is 468. This other string is banana"
 
 test
@@ -49,20 +50,50 @@ test-compiler-error
 #         "this is not a very smart interpolation marker 1 2 3 4"
 #
 
-local a : i32 10
-local b : i32 20
-test
-    ==
-        interpolate
-            "${1} is the ${2} of ${0}, and also ${2}"
-            "this"
-            10
-            do
-                print "this side effect should occur only once"
-                a * b
-        "10 is the 200 of this, and also 200"
+do
+    local a : i32 10
+    local b : i32 20
+
+    test
+        ==
+            interpolate
+                "${1} is the ${2} of ${0}, and also ${2}"
+                "this"
+                10
+                do
+                    print "this side effect should occur only once"
+                    a * b
+            "10 is the 200 of this, and also 200"
 
 test
     ==
         va-format " " 1 2 3 4
         "1 2 3 4"
+
+test
+    ==
+        f""""varargs work just fine if you va-format them... ${va-format " " 1 2 3 4}
+        "varargs work just fine if you va-format them... 1 2 3 4\n"
+
+fn join-str (a b)
+    f"${a} ${b}"
+
+test
+    ==
+        join-str "banana" "grape"
+        "banana grape"
+
+do
+    local a : i32 1
+    local b : i32 2
+    test
+        ==
+            f"${a} + ${b} = ${a + b}"
+            "1 + 2 = 3"
+
+    a = 4
+    b = 8
+    test
+        ==
+            f"${a} + ${b} = ${a + b}"
+            "4 + 8 = 12"
