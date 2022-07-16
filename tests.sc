@@ -61,3 +61,8 @@ test
                 print "this side effect should occur only once"
                 a * b
         "10 is the 200 of this, and also 200"
+
+test
+    ==
+        va-format " " 1 2 3 4
+        "1 2 3 4"

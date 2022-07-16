@@ -158,6 +158,27 @@ spice interpolate (fmt args...)
     spice-quote
         format fmt arglist
 
+spice va-format (sep args...)
+    sep as:= string
+    local fmt : String
+    local args : (Array Value)
+
+    fold (idx = 0) for arg in ('args args...)
+        let specifier arg = (value->format-specifier arg)
+        if (idx == (('argcount args...) - 1))
+            fmt ..= specifier
+        else
+            fmt = (fmt .. specifier .. sep)
+        'append args arg
+        idx + 1
+
+    let arglist =
+        sc_argument_list_map_new ((countof args) as i32)
+            inline (n)
+                args @ n
+    spice-quote
+        format fmt arglist
+
 sugar prefix:f (str)
     let chunked = (parse-template (str as string))
 
@@ -192,5 +213,5 @@ sugar prefix:f (str)
         qq [format] [(fmt as string)] (unquote-splice args)
 
 do
-    let format prefix:f interpolate
+    let format prefix:f interpolate va-format
     locals;
