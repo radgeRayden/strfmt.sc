@@ -117,11 +117,16 @@ fn value->format-specifier (val)
     else
         _ str"%s" `(tostring val)
 
+fn parse-positive-integer (str)
+    using import UTF-8
+
+    fold (result = 0) for c in str
+        if (c >= (char32 "0") and c <= (char32 "9"))
+            result := (result * 10) + (c - (char32 "0"))
+        else
+            error ("illegal character: " .. (c as string))
+
 spice interpolate (fmt args...)
-    # int atoi (const char * str);
-    # FIXME: atoi is dangerous, and we can't catch invalid arguments. Will need to implement
-    # parsing function.
-    let atoi = (extern 'atoi (function i32 rawstring))
     let chunked = (parse-template (fmt as string))
 
     local fmt : String
@@ -132,7 +137,7 @@ spice interpolate (fmt args...)
         case Text (txt)
             fmt ..= txt
         case Code (idx)
-            let arg = ('getarg args... (atoi idx))
+            let arg = ('getarg args... (parse-positive-integer idx))
             let specifier val = (value->format-specifier arg)
             fmt ..= specifier
             'append args val
